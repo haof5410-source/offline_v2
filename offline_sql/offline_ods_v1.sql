@@ -1,1 +1,1 @@
-select * from dwd_order_ed;
+show databases ;
