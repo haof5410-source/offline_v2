@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="@10.160.60.13" uuid="9fe33000-15c1-4ee7-8e5a-91aeb9cf759f">
+    <data-source source="LOCAL" name="@cdh3" uuid="8bea0e40-9073-4829-ba13-5ec9d8f4cb16">
       <driver-ref>hive</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.apache.hive.jdbc.HiveDriver</jdbc-driver>
-      <jdbc-url>jdbc:hive2://10.160.60.13:10000</jdbc-url>
+      <jdbc-url>jdbc:hive2://cdh3:10000</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
   </component>
