@@ -428,7 +428,7 @@ CREATE EXTERNAL TABLE dim_user_zip
     LOCATION '/warehouse/gmall/dim/dim_user_zip/'
     TBLPROPERTIES ('orc.compress' = 'snappy');
 
-insert overwrite table dim_user_zip partition (ds = '99991231')
+insert overwrite table dim_user_zip partition (ds = '20250917')
 select id,
        concat(substr(name, 1, 1), '*')                as name,
        if(phone_num regexp '^(13[0-9]|14[01456879]|15[0-35-9]|16[2567]|17[0-8]|18[0-9]|19[0-35-9])\\d{8}$',
