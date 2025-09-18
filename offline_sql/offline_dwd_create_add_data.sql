@@ -16,7 +16,7 @@ CREATE EXTERNAL TABLE dwd_trade_cart_add_inc
     TBLPROPERTIES ('orc.compress' = 'snappy');
 
 set hive.exec.dynamic.partition.mode=nonstrict;
-insert overwrite table dwd_trade_cart_add_inc partition (ds = '20250917')
+insert overwrite table dwd_trade_cart_add_inc partition (ds = '20250918')
 select
     id,
     user_id,
@@ -52,7 +52,7 @@ CREATE EXTERNAL TABLE dwd_trade_order_detail_inc
     TBLPROPERTIES ('orc.compress' = 'snappy');
 
 set hive.exec.dynamic.partition.mode=nonstrict;
-insert overwrite table dwd_trade_order_detail_inc partition (ds = '20250917')
+insert overwrite table dwd_trade_order_detail_inc partition (ds = '20250918')
 select
     od.id,
     order_id,
@@ -141,7 +141,7 @@ CREATE EXTERNAL TABLE dwd_trade_pay_detail_suc_inc
     TBLPROPERTIES ('orc.compress' = 'snappy');
 
 set hive.exec.dynamic.partition.mode=nonstrict;
-insert overwrite table dwd_trade_pay_detail_suc_inc partition (ds = '20250917')
+insert overwrite table dwd_trade_pay_detail_suc_inc partition (ds = '20250918')
 select
     od.id,
     od.order_id,
@@ -239,7 +239,7 @@ CREATE EXTERNAL TABLE dwd_trade_cart_full
     LOCATION '/warehouse/gmall/dwd/dwd_trade_cart_full/'
     TBLPROPERTIES ('orc.compress' = 'snappy');
 
-insert overwrite table dwd_trade_cart_full partition(ds='20250917')
+insert overwrite table dwd_trade_cart_full partition(ds='20250918')
 select
     id,
     user_id,
@@ -275,7 +275,7 @@ CREATE EXTERNAL TABLE dwd_trade_trade_flow_acc
     TBLPROPERTIES ('orc.compress' = 'snappy');
 
 set hive.exec.dynamic.partition.mode=nonstrict;
-insert overwrite table dwd_trade_trade_flow_acc partition(ds = '20250917')
+insert overwrite table dwd_trade_trade_flow_acc partition(ds = '20250918')
 select
     oi.id,
     user_id,
@@ -343,7 +343,7 @@ CREATE EXTERNAL TABLE dwd_tool_coupon_used_inc
     TBLPROPERTIES ("orc.compress" = "snappy");
 
 set hive.exec.dynamic.partition.mode=nonstrict;
-insert overwrite table dwd_tool_coupon_used_inc partition(ds = '20250917')
+insert overwrite table dwd_tool_coupon_used_inc partition(ds = '20250918')
 select
     id,
     coupon_id,
@@ -371,7 +371,7 @@ CREATE EXTERNAL TABLE dwd_interaction_favor_add_inc
     TBLPROPERTIES ("orc.compress" = "snappy");
 
 set hive.exec.dynamic.partition.mode=nonstrict;
-insert overwrite table dwd_interaction_favor_add_inc partition (ds = '20250917')
+insert overwrite table dwd_interaction_favor_add_inc partition (ds = '20250918')
 select
     id,
     user_id,
@@ -411,31 +411,31 @@ CREATE EXTERNAL TABLE dwd_traffic_page_view_inc
     LOCATION '/warehouse/gmall/dwd/dwd_traffic_page_view_inc'
     TBLPROPERTIES ('orc.compress' = 'snappy');
 
-insert overwrite table dwd_traffic_page_view_inc partition (ds='2022-06-08')
+insert overwrite table dwd_traffic_page_view_inc partition (ds='20250918')
 select
-    json_tuple(log, 'ar') as province_id,
-    json_tuple(log, 'ba') as brand,
-    json_tuple(log, 'ch') as channel,
-    json_tuple(log, 'is_new') as is_new,
-    json_tuple(log, 'md') as model,
-    json_tuple(log, 'mid') as mid_id,
-    json_tuple(log, 'os') as operate_system,
-    json_tuple(log, 'uid') as user_id,
-    json_tuple(log, 'vc') as version_code,
-    json_tuple(log, 'item') as page_item,
-    json_tuple(log, 'item_type') as page_item_type,
-    json_tuple(log, 'last_page_id') as last_page_id,
-    json_tuple(log, 'page_id') as page_id,
-    json_tuple(log, 'from_pos_id') as from_pos_id,
-    json_tuple(log, 'from_pos_seq') as from_pos_seq,
-    json_tuple(log, 'refer_id') as refer_id,
-    date_format(from_utc_timestamp(json_tuple(log, 'ts'),'GMT+8'),'yyyy-MM-dd') date_id,
-    date_format(from_utc_timestamp(json_tuple(log, 'ts'),'GMT+8'),'yyyy-MM-dd HH:mm:ss') view_time,
-    json_tuple(log, 'sid') as session_id,
-    json_tuple(log, 'during_time') as during_time
+    get_json_object(log, '$.common.ar') as province_id,
+    get_json_object(log, '$.common.ba') as brand,
+    get_json_object(log, '$.common.ch') as channel,
+    get_json_object(log, '$.common.is_new') as is_new,
+    get_json_object(log, '$.common.md') as model,
+    get_json_object(log, '$.common.mid') as mid_id,
+    get_json_object(log, '$.common.os') as operate_system,
+    get_json_object(log, '$.common.uid') as user_id,
+    get_json_object(log, '$.common.vc') as version_code,
+    get_json_object(log, '$.page.item') as page_item,
+    get_json_object(log, '$.page.item_type') as page_item_type,
+    get_json_object(log, '$.page.last_page_id') as last_page_id,
+    get_json_object(log, '$.page.page_id') as page_id,
+    get_json_object(log, '$.page.from_pos_id') as from_pos_id,
+    get_json_object(log, '$.page.from_pos_seq') as from_pos_seq,
+    get_json_object(log, '$.page.refer_id') as refer_id,
+    date_format(from_utc_timestamp(get_json_object(log, '$.ts'), 'GMT+8'), 'yyyy-MM-dd') as date_id,
+    date_format(from_utc_timestamp(get_json_object(log, '$.ts'), 'GMT+8'), 'yyyy-MM-dd HH:mm:ss') as view_time,
+    get_json_object(log, '$.common.sid') as session_id,
+    get_json_object(log, '$.page.during_time') as during_time
 from ods_z_log_inc
-where ds=${d};
-set hive.cbo.enable=true;
+where ds=${d}
+  and get_json_object(log, '$.page') is not null;
 
 
 DROP TABLE IF EXISTS dwd_user_register_inc;
@@ -458,44 +458,47 @@ CREATE EXTERNAL TABLE dwd_user_register_inc
     TBLPROPERTIES ("orc.compress" = "snappy");
 
 set hive.exec.dynamic.partition.mode=nonstrict;
-insert overwrite table dwd_user_register_inc partition(ds = '20250917')
+insert overwrite table dwd_user_register_inc partition(ds)
 select
     ui.user_id,
-    date_format(create_time,'yyyy-MM-dd') date_id,
-    create_time,
-    channel,
-    province_id,
-    version_code,
-    mid_id,
-    brand,
-    model,
-    operate_system
+    date_format(ui.create_time, 'yyyy-MM-dd') as date_id,
+    ui.create_time,
+    nvl(log.channel, 'unknown') as channel,  -- 处理 NULL 值
+    nvl(log.province_id, 'unknown') as province_id,
+    nvl(log.version_code, 'unknown') as version_code,
+    nvl(log.mid_id, 'unknown') as mid_id,
+    nvl(log.brand, 'unknown') as brand,
+    nvl(log.model, 'unknown') as model,
+    nvl(log.operate_system, 'unknown') as operate_system,
+    '20250918' as ds  -- 明确分区字段值，与过滤条件一致
 from
     (
+        -- 用户注册主信息（解析 data 字段）
         select
-            id user_id,
-            create_time
+            id as user_id,
+            create_time as create_time
         from ods_user_info_inc
-        where ds='2022-06-08'
-    )ui
+        where ds=${d}
+    ) ui
         left join
     (
+        -- 注册相关日志信息（解析 common 和 page 字段）
         select
-            json_tuple(log, 'ar') as province_id,
-            json_tuple(log, 'ba') as brand,
-            json_tuple(log, 'ch') as channel,
-            json_tuple(log, 'is_new') as is_new,
-            json_tuple(log, 'md') as model,
-            json_tuple(log, 'mid') as mid_id,
-            json_tuple(log, 'os') as operate_system,
-            json_tuple(log, 'uid') as user_id,
-            json_tuple(log, 'vc') as version_code
+            get_json_object(log, '$common.ar') as province_id,
+            get_json_object(log, '$common.ba') as brand,
+            get_json_object(log, '$common.ch') as channel,
+            get_json_object(log, '$common.md') as model,
+            get_json_object(log, '$common.mid') as mid_id,
+            get_json_object(log, '$common.os') as operate_system,
+            get_json_object(log, '$common.uid') as user_id,  -- 关联用户 ID
+            get_json_object(log, '$common.vc') as version_code
         from ods_z_log_inc
-        where ds='2022-06-08'
-          and json_tuple(log, 'page_id')='register'
-          and json_tuple(log, 'uid') is not null
-    )log
-    on ui.user_id=log.user_id;
+        where ds = '20250917'
+          and get_json_object(log, '$page.page_id') = 'register'  -- 解析 page 字段
+          and get_json_object(log, '$common.uid') is not null  -- 过滤有效用户
+    ) log
+    on ui.user_id = log.user_id;
+
 
 DROP TABLE IF EXISTS dwd_user_login_inc;
 CREATE EXTERNAL TABLE dwd_user_login_inc
@@ -516,10 +519,11 @@ CREATE EXTERNAL TABLE dwd_user_login_inc
     LOCATION '/warehouse/gmall/dwd/dwd_user_login_inc/'
     TBLPROPERTIES ("orc.compress" = "snappy");
 
-insert overwrite table dwd_user_login_inc partition (ds = '20250917')
+insert overwrite table dwd_user_login_inc partition (ds = '20250918')
 select user_id,
-       date_format(from_utc_timestamp(ts, 'GMT+8'), 'yyyy-MM-dd')          date_id,
-       date_format(from_utc_timestamp(ts, 'GMT+8'), 'yyyy-MM-dd HH:mm:ss') login_time,
+       -- 解析后的 ts 用于时间格式化
+       date_format(from_utc_timestamp(cast(ts as bigint), 'GMT+8'), 'yyyy-MM-dd') date_id,
+       date_format(from_utc_timestamp(cast(ts as bigint), 'GMT+8'), 'yyyy-MM-dd HH:mm:ss') login_time,
        channel,
        province_id,
        version_code,
@@ -536,21 +540,24 @@ from (
                 brand,
                 model,
                 operate_system,
-                ts
+                ts  -- 传递解析后的 ts
          from (select
-                      json_tuple(log, 'uid') as user_id,
-                      json_tuple(log, 'ch') as channel,
-                      json_tuple(log, 'ar') as province_id,
-                      json_tuple(log, 'vc') as version_code,
-                      json_tuple(log, 'mid') as mid_id,
-                      json_tuple(log, 'ba') as brand,
-                      json_tuple(log, 'md') as model,
-                      json_tuple(log, 'os') as operate_system,
-                      json_tuple(log, 'ts') as ts,
-                      row_number() over (partition by json_tuple(log, 'sid') order by json_tuple(log, 'ts')) rn
+                   get_json_object(log, '$common.uid') user_id,
+                   get_json_object(log, '$common.ch') channel,
+                   get_json_object(log, '$common.ar') province_id,
+                   get_json_object(log, '$common.vc') version_code,
+                   get_json_object(log, '$common.mid') mid_id,
+                   get_json_object(log, '$common.ba') brand,
+                   get_json_object(log, '$common.md') model,
+                   get_json_object(log, '$common.os') operate_system,
+                   -- 关键：解析 ts 字段（假设在 log 字段下）
+                   get_json_object(log, '$.ts') as ts,
+                   -- 解析 sid 用于分区（如果 sid 也在 common 里）
+                   row_number() over (partition by get_json_object(log, '$common.sid') order by get_json_object(log, '$.ts')) rn
                from ods_z_log_inc
-               where ds = ${d}
-                 and json_tuple(log, 'page') is not null
-                 and json_tuple(log, 'common.uid') is not null) t1
+               where ds=${d}
+                 and get_json_object(log, '$.page') is not null  -- 解析 page 非空
+                 and get_json_object(log, '$common.uid') is not null
+              ) t1
          where rn = 1
      ) t2;
