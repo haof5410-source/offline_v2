@@ -103,7 +103,7 @@ CREATE EXTERNAL TABLE dws_trade_user_order_1d
     LOCATION '/warehouse/gmall/dws/dws_trade_user_order_1d'
     TBLPROPERTIES ('orc.compress' = 'snappy');
 
-insert overwrite table dws_trade_user_order_1d partition(ds='20250918')
+insert overwrite table dws_trade_user_order_1d partition(ds='20250919')
 select
     user_id,
     count(distinct(order_id)),
@@ -128,7 +128,7 @@ CREATE EXTERNAL TABLE dws_trade_user_cart_add_1d
     LOCATION '/warehouse/gmall/dws/dws_trade_user_cart_add_1d'
     TBLPROPERTIES ('orc.compress' = 'snappy');
 
-insert overwrite table dws_trade_user_cart_add_1d partition(ds='20250918')
+insert overwrite table dws_trade_user_cart_add_1d partition(ds='20250919')
 select
     user_id,
     count(*),
@@ -150,7 +150,7 @@ CREATE EXTERNAL TABLE dws_trade_user_payment_1d
     LOCATION '/warehouse/gmall/dws/dws_trade_user_payment_1d'
     TBLPROPERTIES ('orc.compress' = 'snappy');
 
-insert overwrite table dws_trade_user_payment_1d partition(ds='20250918')
+insert overwrite table dws_trade_user_payment_1d partition(ds='20250919')
 select
     user_id,
     count(distinct(order_id)),
@@ -180,7 +180,7 @@ CREATE EXTERNAL TABLE dws_trade_province_order_1d
     LOCATION '/warehouse/gmall/dws/dws_trade_province_order_1d'
     TBLPROPERTIES ('orc.compress' = 'snappy');
 
-insert overwrite table dws_trade_province_order_1d partition(ds='20250918')
+insert overwrite table dws_trade_province_order_1d partition(ds='20250919')
 select
     province_id,
     province_name,
@@ -235,7 +235,7 @@ CREATE EXTERNAL TABLE dws_tool_user_coupon_coupon_used_1d
     LOCATION '/warehouse/gmall/dws/dws_tool_user_coupon_coupon_used_1d'
     TBLPROPERTIES ('orc.compress' = 'snappy');
 
-insert overwrite table dws_tool_user_coupon_coupon_used_1d partition(ds='20250918')
+insert overwrite table dws_tool_user_coupon_coupon_used_1d partition(ds='20250919')
 select
     user_id,
     coupon_id,
@@ -288,7 +288,7 @@ CREATE EXTERNAL TABLE dws_interaction_sku_favor_add_1d
     TBLPROPERTIES ('orc.compress' = 'snappy');
 
 
-insert overwrite table dws_interaction_sku_favor_add_1d partition(ds='20250918')
+insert overwrite table dws_interaction_sku_favor_add_1d partition(ds='20250919')
 select
     sku_id,
     sku_name,
@@ -347,7 +347,7 @@ CREATE EXTERNAL TABLE dws_traffic_session_page_view_1d
     TBLPROPERTIES ('orc.compress' = 'snappy');
 
 
-insert overwrite table dws_traffic_session_page_view_1d partition(ds='20250918')
+insert overwrite table dws_traffic_session_page_view_1d partition(ds='20250919')
 select
     session_id,
     mid_id,
@@ -380,7 +380,7 @@ CREATE EXTERNAL TABLE dws_traffic_page_visitor_page_view_1d
     TBLPROPERTIES ('orc.compress' = 'snappy');
 
 
-insert overwrite table dws_traffic_page_visitor_page_view_1d partition(ds='20250918')
+insert overwrite table dws_traffic_page_visitor_page_view_1d partition(ds='20250919')
 select
     mid_id,
     brand,
@@ -426,7 +426,7 @@ CREATE EXTERNAL TABLE dws_trade_user_sku_order_nd
     LOCATION '/warehouse/gmall/dws/dws_trade_user_sku_order_nd'
     TBLPROPERTIES ('orc.compress' = 'snappy');
 
-insert overwrite table dws_trade_user_sku_order_nd partition(ds='20250918')
+insert overwrite table dws_trade_user_sku_order_nd partition(ds='20250919')
 select
     user_id,
     sku_id,
@@ -439,12 +439,12 @@ select
     category3_name,
     tm_id,
     tm_name,
-    sum(if(ds>=date_add('20250918',-6),order_count_1d,0)),
-    sum(if(ds>=date_add('20250918',-6),order_num_1d,0)),
-    sum(if(ds>=date_add('20250918',-6),order_original_amount_1d,0)),
-    sum(if(ds>=date_add('20250918',-6),activity_reduce_amount_1d,0)),
-    sum(if(ds>=date_add('20250918',-6),coupon_reduce_amount_1d,0)),
-    sum(if(ds>=date_add('20250918',-6),order_total_amount_1d,0)),
+    sum(if(ds>=date_add('20250919',-6),order_count_1d,0)),
+    sum(if(ds>=date_add('20250919',-6),order_num_1d,0)),
+    sum(if(ds>=date_add('20250919',-6),order_original_amount_1d,0)),
+    sum(if(ds>=date_add('20250919',-6),activity_reduce_amount_1d,0)),
+    sum(if(ds>=date_add('20250919',-6),coupon_reduce_amount_1d,0)),
+    sum(if(ds>=date_add('20250919',-6),order_total_amount_1d,0)),
     sum(order_count_1d),
     sum(order_num_1d),
     sum(order_original_amount_1d),
@@ -452,7 +452,7 @@ select
     sum(coupon_reduce_amount_1d),
     sum(order_total_amount_1d)
 from dws_trade_user_sku_order_1d
-where ds>=date_add('20250918',-29)
+where ds>=date_add('20250919',-29)
 group by  user_id,sku_id,sku_name,category1_id,category1_name,category2_id,category2_name,category3_id,category3_name,tm_id,tm_name;
 
 
@@ -488,19 +488,19 @@ select
     area_code,
     iso_code,
     iso_3166_2,
-    sum(if(ds>=date_add('20250918',-6),order_count_1d,0)),
-    sum(if(ds>=date_add('20250918',-6),order_original_amount_1d,0)),
-    sum(if(ds>=date_add('20250918',-6),activity_reduce_amount_1d,0)),
-    sum(if(ds>=date_add('20250918',-6),coupon_reduce_amount_1d,0)),
-    sum(if(ds>=date_add('20250918',-6),order_total_amount_1d,0)),
+    sum(if(ds>=date_add('20250919',-6),order_count_1d,0)),
+    sum(if(ds>=date_add('20250919',-6),order_original_amount_1d,0)),
+    sum(if(ds>=date_add('20250919',-6),activity_reduce_amount_1d,0)),
+    sum(if(ds>=date_add('20250919',-6),coupon_reduce_amount_1d,0)),
+    sum(if(ds>=date_add('20250919',-6),order_total_amount_1d,0)),
     sum(order_count_1d),
     sum(order_original_amount_1d),
     sum(activity_reduce_amount_1d),
     sum(coupon_reduce_amount_1d),
     sum(order_total_amount_1d)
 from dws_trade_province_order_1d
-where ds>=date_add('20250918',-29)
-  and ds<='20250918'
+where ds>=date_add('20250919',-29)
+  and ds<='20250919'
 group by province_id,province_name,area_code,iso_code,iso_3166_2;
 
 
@@ -522,7 +522,7 @@ CREATE EXTERNAL TABLE dws_trade_user_order_td
     LOCATION '/warehouse/gmall/dws/dws_trade_user_order_td'
     TBLPROPERTIES ('orc.compress' = 'snappy');
 
-insert overwrite table dws_trade_user_order_td partition(ds='20250918')
+insert overwrite table dws_trade_user_order_td partition(ds='20250919')
 select
     user_id,
     min(ds) order_date_first,
@@ -537,10 +537,10 @@ from dws_trade_user_order_1d
 group by user_id;
 
 
-insert overwrite table dws_trade_user_order_td partition (ds = '20250918')
+insert overwrite table dws_trade_user_order_td partition (ds = '20250919')
 select nvl(old.user_id, new.user_id),
-       if(old.user_id is not null, old.order_date_first, '20250918'),
-       if(new.user_id is not null, '20250918', old.order_date_last),
+       if(old.user_id is not null, old.order_date_first, '20250919'),
+       if(new.user_id is not null, '20250919', old.order_date_last),
        nvl(old.order_count_td, 0) + nvl(new.order_count_1d, 0),
        nvl(old.order_num_td, 0) + nvl(new.order_num_1d, 0),
        nvl(old.original_amount_td, 0) + nvl(new.order_original_amount_1d, 0),
@@ -558,7 +558,7 @@ from (
                 coupon_reduce_amount_td,
                 total_amount_td
          from dws_trade_user_order_td
-         where ds = date_add('20250918', -1)
+         where ds = date_add('20250919', -1)
      ) old
          full outer join
      (
@@ -589,7 +589,7 @@ CREATE EXTERNAL TABLE dws_user_user_login_td
     TBLPROPERTIES ('orc.compress' = 'snappy');
 
 
-insert overwrite table dws_user_user_login_td partition (ds = '20250918')
+insert overwrite table dws_user_user_login_td partition (ds = '20250919')
 select u.id         as  user_id,
        nvl(login_date_last, date_format(create_time, 'yyyy-MM-dd')) as login_date_last,
        date_format(create_time, 'yyyy-MM-dd') as login_date_first,
@@ -610,10 +610,10 @@ from (
      ) l
      on u.id = l.user_id;
 
-insert overwrite table dws_user_user_login_td partition (ds = '20250918')
+insert overwrite table dws_user_user_login_td partition (ds = '20250919')
 select nvl(old.user_id, new.user_id)  as user_id,
-       if(new.user_id is null, old.login_date_last, '20250918')as login_date_last,
-       if(old.login_date_first is null, '20250918', old.login_date_first)as login_date_first,
+       if(new.user_id is null, old.login_date_last, '20250919')as login_date_last,
+       if(old.login_date_first is null, '20250919', old.login_date_first)as login_date_first,
        nvl(old.login_count_td, 0) + nvl(new.login_count_1d, 0)as login_count_td
 from (
          select user_id,
@@ -621,14 +621,14 @@ from (
                 login_date_first,
                 login_count_td
          from dws_user_user_login_td
-         where ds = date_add('20250918', -1)
+         where ds = date_add('20250919', -1)
      ) old
          full outer join
      (
          select user_id,
                 count(*) login_count_1d
          from dwd_user_login_inc
-         where ds = '20250918'
+         where ds = '20250919'
          group by user_id
      ) new
      on old.user_id = new.user_id;

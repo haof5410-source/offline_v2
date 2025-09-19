@@ -16,7 +16,7 @@ CREATE EXTERNAL TABLE dwd_trade_cart_add_inc
     TBLPROPERTIES ('orc.compress' = 'snappy');
 
 set hive.exec.dynamic.partition.mode=nonstrict;
-insert overwrite table dwd_trade_cart_add_inc partition (ds = '20250918')
+insert overwrite table dwd_trade_cart_add_inc partition (ds = '20250919')
 select
     id,
     user_id,
@@ -52,7 +52,7 @@ CREATE EXTERNAL TABLE dwd_trade_order_detail_inc
     TBLPROPERTIES ('orc.compress' = 'snappy');
 
 set hive.exec.dynamic.partition.mode=nonstrict;
-insert overwrite table dwd_trade_order_detail_inc partition (ds = '20250918')
+insert overwrite table dwd_trade_order_detail_inc partition (ds = '20250919')
 select
     od.id,
     order_id,
@@ -141,7 +141,7 @@ CREATE EXTERNAL TABLE dwd_trade_pay_detail_suc_inc
     TBLPROPERTIES ('orc.compress' = 'snappy');
 
 set hive.exec.dynamic.partition.mode=nonstrict;
-insert overwrite table dwd_trade_pay_detail_suc_inc partition (ds = '20250918')
+insert overwrite table dwd_trade_pay_detail_suc_inc partition (ds = '20250919')
 select
     od.id,
     od.order_id,
@@ -239,7 +239,7 @@ CREATE EXTERNAL TABLE dwd_trade_cart_full
     LOCATION '/warehouse/gmall/dwd/dwd_trade_cart_full/'
     TBLPROPERTIES ('orc.compress' = 'snappy');
 
-insert overwrite table dwd_trade_cart_full partition(ds='20250918')
+insert overwrite table dwd_trade_cart_full partition(ds='20250919')
 select
     id,
     user_id,
@@ -275,7 +275,7 @@ CREATE EXTERNAL TABLE dwd_trade_trade_flow_acc
     TBLPROPERTIES ('orc.compress' = 'snappy');
 
 set hive.exec.dynamic.partition.mode=nonstrict;
-insert overwrite table dwd_trade_trade_flow_acc partition(ds = '20250918')
+insert overwrite table dwd_trade_trade_flow_acc partition(ds = '20250919')
 select
     oi.id,
     user_id,
@@ -343,7 +343,7 @@ CREATE EXTERNAL TABLE dwd_tool_coupon_used_inc
     TBLPROPERTIES ("orc.compress" = "snappy");
 
 set hive.exec.dynamic.partition.mode=nonstrict;
-insert overwrite table dwd_tool_coupon_used_inc partition(ds = '20250918')
+insert overwrite table dwd_tool_coupon_used_inc partition(ds = '20250919')
 select
     id,
     coupon_id,
@@ -371,7 +371,7 @@ CREATE EXTERNAL TABLE dwd_interaction_favor_add_inc
     TBLPROPERTIES ("orc.compress" = "snappy");
 
 set hive.exec.dynamic.partition.mode=nonstrict;
-insert overwrite table dwd_interaction_favor_add_inc partition (ds = '20250918')
+insert overwrite table dwd_interaction_favor_add_inc partition (ds = '20250919')
 select
     id,
     user_id,
@@ -411,7 +411,7 @@ CREATE EXTERNAL TABLE dwd_traffic_page_view_inc
     LOCATION '/warehouse/gmall/dwd/dwd_traffic_page_view_inc'
     TBLPROPERTIES ('orc.compress' = 'snappy');
 
-insert overwrite table dwd_traffic_page_view_inc partition (ds='20250918')
+insert overwrite table dwd_traffic_page_view_inc partition (ds='20250919')
 select
     get_json_object(log, '$.common.ar') as province_id,
     get_json_object(log, '$.common.ba') as brand,
@@ -470,7 +470,7 @@ select
     nvl(log.brand, 'unknown') as brand,
     nvl(log.model, 'unknown') as model,
     nvl(log.operate_system, 'unknown') as operate_system,
-    '20250918' as ds  -- 明确分区字段值，与过滤条件一致
+    '20250919' as ds  -- 明确分区字段值，与过滤条件一致
 from
     (
         -- 用户注册主信息（解析 data 字段）
@@ -519,7 +519,7 @@ CREATE EXTERNAL TABLE dwd_user_login_inc
     LOCATION '/warehouse/gmall/dwd/dwd_user_login_inc/'
     TBLPROPERTIES ("orc.compress" = "snappy");
 
-insert overwrite table dwd_user_login_inc partition (ds = '20250918')
+insert overwrite table dwd_user_login_inc partition (ds = '20250919')
 select user_id,
        -- 解析后的 ts 用于时间格式化
        date_format(from_utc_timestamp(cast(ts as bigint), 'GMT+8'), 'yyyy-MM-dd') date_id,

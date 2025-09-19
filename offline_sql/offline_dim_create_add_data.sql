@@ -94,7 +94,7 @@ table
 dim_sku_full
 partition
 (
-ds = '20250918'
+ds = '20250919'
 )
 select sku.id,
        sku.price,
@@ -152,7 +152,7 @@ CREATE EXTERNAL TABLE dim_coupon_full
     LOCATION '/warehouse/gmall/dim/dim_coupon_full/'
     TBLPROPERTIES ('orc.compress' = 'snappy');
 
-insert overwrite table dim_coupon_full partition (ds = '20250918')
+insert overwrite table dim_coupon_full partition (ds = '20250919')
 select id,
        coupon_name,
        coupon_type,
@@ -233,7 +233,7 @@ CREATE EXTERNAL TABLE dim_activity_full
     LOCATION '/warehouse/gmall/dim/dim_activity_full/'
     TBLPROPERTIES ('orc.compress' = 'snappy');
 
-insert overwrite table dim_activity_full partition (ds = '20250918')
+insert overwrite table dim_activity_full partition (ds = '20250919')
 select rule.id,
        info.id,
        activity_name,
@@ -298,7 +298,7 @@ CREATE EXTERNAL TABLE dim_province_full
     LOCATION '/warehouse/gmall/dim/dim_province_full/'
     TBLPROPERTIES ('orc.compress' = 'snappy');
 
-insert overwrite table dim_province_full partition (ds = '20250918')
+insert overwrite table dim_province_full partition (ds = '20250919')
 select province.id,
        province.name,
        province.area_code,
@@ -336,7 +336,7 @@ CREATE EXTERNAL TABLE dim_promotion_pos_full
     LOCATION '/warehouse/gmall/dim/dim_promotion_pos_full/'
     TBLPROPERTIES ('orc.compress' = 'snappy');
 
-insert overwrite table dim_promotion_pos_full partition (ds = '20250918')
+insert overwrite table dim_promotion_pos_full partition (ds = '20250919')
 select `id`,
        `pos_location`,
        `pos_type`,
@@ -360,7 +360,7 @@ CREATE EXTERNAL TABLE dim_promotion_refer_full
     LOCATION '/warehouse/gmall/dim/dim_promotion_refer_full/'
     TBLPROPERTIES ('orc.compress' = 'snappy');
 
-insert overwrite table dim_promotion_refer_full partition (ds = '20250918')
+insert overwrite table dim_promotion_refer_full partition (ds = '20250919')
 select `id`,
        `refer_name`,
        `create_time`,
@@ -428,7 +428,7 @@ CREATE EXTERNAL TABLE dim_user_zip
     LOCATION '/warehouse/gmall/dim/dim_user_zip/'
     TBLPROPERTIES ('orc.compress' = 'snappy');
 
-insert overwrite table dim_user_zip partition (ds = '20250918')
+insert overwrite table dim_user_zip partition (ds = '20250919')
 select id,
        concat(substr(name, 1, 1), '*')                as name,
        if(phone_num regexp '^(13[0-9]|14[01456879]|15[0-35-9]|16[2567]|17[0-8]|18[0-9]|19[0-35-9])\\d{8}$',
@@ -440,7 +440,7 @@ select id,
        gender,
        create_time,
        operate_time,
-       '20250918'                                        start_date,
+       '20250919'                                        start_date,
        '99991231'                                        end_date
 from ods_user_info_inc
 where ds = ${d};
