@@ -28,7 +28,7 @@ select
     cast(count(*) as bigint) sv_count,
     cast(sum(if(page_count_1d=1,1,0))/count(*) as decimal(16,2)) bounce_rate
 from dws_traffic_session_page_view_1d lateral view explode(array(1,7,30)) tmp as recent_days
-where ds>=date_add('20250919',-recent_days+1)
+where ds='20250919'
 group by recent_days,channel;
 
 DROP TABLE IF EXISTS ads_page_path;
@@ -153,8 +153,6 @@ from (
                 login_date_first
          from dws_user_user_login_td
          where ds = ${d}
-           and login_date_first >= date_add('20250919', -7)
-           and login_date_first < '20250919'
      ) t1
 group by login_date_first;
 
@@ -178,7 +176,6 @@ select '20250919' ds,
        count(*) active_user_count
 from dws_user_user_login_td lateral view explode(array(1, 7, 30)) tmp as recent_days
 where ds = '20250919'
-  and login_date_last >= date_add('20250919', -recent_days + 1)
 group by recent_days;
 
 
@@ -263,7 +260,6 @@ select
     count(*) new_order_user_count
 from dws_trade_user_order_td lateral view explode(array(1,7,30)) tmp as recent_days
 where ds='20250919'
-  and order_date_first>=date_add('20250919',-recent_days+1)
 group by recent_days;
 
 

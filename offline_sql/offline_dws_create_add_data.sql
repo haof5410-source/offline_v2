@@ -452,7 +452,7 @@ select
     sum(coupon_reduce_amount_1d),
     sum(order_total_amount_1d)
 from dws_trade_user_sku_order_1d
-where ds>=date_add('20250919',-29)
+where ds='20250919'
 group by  user_id,sku_id,sku_name,category1_id,category1_name,category2_id,category2_name,category3_id,category3_name,tm_id,tm_name;
 
 
@@ -598,7 +598,7 @@ from (
          select id,
                 create_time
          from dim_user_zip
-         where ds = '9999-12-31'
+         where ds = '20250919'
      ) u
          left join
      (
@@ -621,7 +621,7 @@ from (
                 login_date_first,
                 login_count_td
          from dws_user_user_login_td
-         where ds = date_add('20250919', -1)
+         where ds = '20250919'
      ) old
          full outer join
      (
