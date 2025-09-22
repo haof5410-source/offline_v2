@@ -484,18 +484,16 @@ from
     (
         -- 注册相关日志信息（解析 common 和 page 字段）
         select
-            get_json_object(log, '$common.ar') as province_id,
-            get_json_object(log, '$common.ba') as brand,
-            get_json_object(log, '$common.ch') as channel,
-            get_json_object(log, '$common.md') as model,
-            get_json_object(log, '$common.mid') as mid_id,
-            get_json_object(log, '$common.os') as operate_system,
-            get_json_object(log, '$common.uid') as user_id,  -- 关联用户 ID
-            get_json_object(log, '$common.vc') as version_code
+            get_json_object(log, '$.common.ar') as province_id,
+            get_json_object(log, '$.common.ba') as brand,
+            get_json_object(log, '$.common.ch') as channel,
+            get_json_object(log, '$.common.md') as model,
+            get_json_object(log, '$.common.mid') as mid_id,
+            get_json_object(log, '$.common.os') as operate_system,
+            get_json_object(log, '$.common.uid') as user_id,  -- 关联用户 ID
+            get_json_object(log, '$.common.vc') as version_code
         from ods_z_log_inc
-        where ds = '20250917'
-          and get_json_object(log, '$page.page_id') = 'register'  -- 解析 page 字段
-          and get_json_object(log, '$common.uid') is not null  -- 过滤有效用户
+        where ds=${d}
     ) log
     on ui.user_id = log.user_id;
 
@@ -542,22 +540,22 @@ from (
                 operate_system,
                 ts  -- 传递解析后的 ts
          from (select
-                   get_json_object(log, '$common.uid') user_id,
-                   get_json_object(log, '$common.ch') channel,
-                   get_json_object(log, '$common.ar') province_id,
-                   get_json_object(log, '$common.vc') version_code,
-                   get_json_object(log, '$common.mid') mid_id,
-                   get_json_object(log, '$common.ba') brand,
-                   get_json_object(log, '$common.md') model,
-                   get_json_object(log, '$common.os') operate_system,
+                   get_json_object(log, '$.common.uid') user_id,
+                   get_json_object(log, '$.common.ch') channel,
+                   get_json_object(log, '$.common.ar') province_id,
+                   get_json_object(log, '$.common.vc') version_code,
+                   get_json_object(log, '$.common.mid') mid_id,
+                   get_json_object(log, '$.common.ba') brand,
+                   get_json_object(log, '$.common.md') model,
+                   get_json_object(log, '$.common.os') operate_system,
                    -- 关键：解析 ts 字段（假设在 log 字段下）
                    get_json_object(log, '$.ts') as ts,
                    -- 解析 sid 用于分区（如果 sid 也在 common 里）
-                   row_number() over (partition by get_json_object(log, '$common.sid') order by get_json_object(log, '$.ts')) rn
+                   row_number() over (partition by get_json_object(log, '$.common.sid') order by get_json_object(log, '$.ts')) rn
                from ods_z_log_inc
                where ds=${d}
                  and get_json_object(log, '$.page') is not null  -- 解析 page 非空
-                 and get_json_object(log, '$common.uid') is not null
+                 and get_json_object(log, '$.common.uid') is not null
               ) t1
          where rn = 1
      ) t2;
