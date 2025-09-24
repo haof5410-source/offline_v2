@@ -48,5 +48,5 @@ conda3安装完成了，我遇到的有个问题就是我们在idea中我们的p
 
 今天我的把conda从新安装了一下顺便把idea的![img_12.png](..%2Fimg%2Fimg_12.png)![img_11.png](..%2Fimg%2Fimg_11.png)
 ,但是我在整读取python的一个SDK报错，连接时下载不了我们的软件依赖，然后我把下载了一个python的软件包(![img_13.png](..%2Fimg%2Fimg_13.png))
-如何识别我创建一个conda的SDK然后再里面下载就好了
+如何识别我创建一个conda的SDK然后再里面下载就好了![img_14.png](..%2Fimg%2Fimg_14.png)
 
