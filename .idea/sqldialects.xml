@@ -5,5 +5,7 @@
     <file url="file://$PROJECT_DIR$/offline_sql/offline_dim_create_add_data.sql" dialect="HiveQL" />
     <file url="file://$PROJECT_DIR$/offline_sql/offline_dwd_create_add_data.sql" dialect="HiveQL" />
     <file url="file://$PROJECT_DIR$/offline_sql/offline_dws_create_add_data.sql" dialect="HiveQL" />
+    <file url="file://$PROJECT_DIR$/offline_sql/postgres_5.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/offline_sql/sqlserver_5.sql" dialect="TSQL" />
   </component>
 </project>
