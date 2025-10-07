@@ -6,20 +6,22 @@ USE mssql_db;
 EXEC sys.sp_cdc_enable_db;
 
 -- 表1：product_info（商品信息表）
-CREATE TABLE product_info (
-                              product_id INT IDENTITY(1,1) PRIMARY KEY,
-                              product_name VARCHAR(100) NOT NULL,
-                              price DECIMAL(10,2) NOT NULL,
-                              update_time DATETIME NOT NULL DEFAULT GETDATE()
+CREATE TABLE product_info
+(
+    product_id   INT IDENTITY (1,1) PRIMARY KEY,
+    product_name VARCHAR(100)   NOT NULL,
+    price        DECIMAL(10, 2) NOT NULL,
+    update_time  DATETIME       NOT NULL DEFAULT GETDATE()
 );
 
 -- 表2：inventory_info（库存表）
-CREATE TABLE inventory_info (
-                                inventory_id INT IDENTITY(1,1) PRIMARY KEY,
-                                product_id INT NOT NULL,
-                                stock INT NOT NULL DEFAULT 0,
-                                last_modify_time DATETIME NOT NULL DEFAULT GETDATE(),
-                                FOREIGN KEY (product_id) REFERENCES product_info(product_id)
+CREATE TABLE inventory_info
+(
+    inventory_id     INT IDENTITY (1,1) PRIMARY KEY,
+    product_id       INT      NOT NULL,
+    stock            INT      NOT NULL DEFAULT 0,
+    last_modify_time DATETIME NOT NULL DEFAULT GETDATE(),
+    FOREIGN KEY (product_id) REFERENCES product_info (product_id)
 );
 
 -- 为表启用CDC
