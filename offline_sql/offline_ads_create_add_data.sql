@@ -16,56 +16,48 @@ CREATE EXTERNAL TABLE ads_traffic_stats_by_channel
     LOCATION '/warehouse/gmall/ads/ads_traffic_stats_by_channel/';
 
 insert overwrite table ads_traffic_stats_by_channel
-select * from ads_traffic_stats_by_channel
+select *
+from ads_traffic_stats_by_channel
 union
-select
-    '20250919' ds,
-    recent_days,
-    channel,
-    cast(count(distinct(mid_id)) as bigint) uv_count,
-    cast(avg(during_time_1d)/1000 as bigint) avg_duration_sec,
-    cast(avg(page_count_1d) as bigint) avg_page_count,
-    cast(count(*) as bigint) sv_count,
-    cast(sum(if(page_count_1d=1,1,0))/count(*) as decimal(16,2)) bounce_rate
-from dws_traffic_session_page_view_1d lateral view explode(array(1,7,30)) tmp as recent_days
-where ds='20250919'
-group by recent_days,channel;
+select '20251008' as                                                       ds,
+       recent_days,
+       channel,
+       cast(count(distinct (mid_id)) as bigint)                            uv_count,
+       cast(avg(during_time_1d) / 1000 as bigint)                          avg_duration_sec,
+       cast(avg(page_count_1d) as bigint)                                  avg_page_count,
+       cast(count(*) as bigint)                                            sv_count,
+       cast(sum(if(page_count_1d = 1, 1, 0)) / count(*) as decimal(16, 2)) bounce_rate
+from dws_traffic_session_page_view_1d lateral view explode(array(1, 7, 30)) tmp as recent_days
+where ds = '20251008'
+group by recent_days, channel;
 
 DROP TABLE IF EXISTS ads_page_path;
 CREATE EXTERNAL TABLE ads_page_path
 (
-    `ds`          STRING COMMENT '统计日期',
-    `source`      STRING COMMENT '跳转起始页面ID',
-    `target`      STRING COMMENT '跳转终到页面ID',
-    `path_count`  BIGINT COMMENT '跳转次数'
+    `ds`         STRING COMMENT '统计日期',
+    `source`     STRING COMMENT '跳转起始页面ID',
+    `target`     STRING COMMENT '跳转终到页面ID',
+    `path_count` BIGINT COMMENT '跳转次数'
 ) COMMENT '页面浏览路径分析'
     ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
     LOCATION '/warehouse/gmall/ads/ads_page_path/';
 
 insert overwrite table ads_page_path
-select * from ads_page_path
+select *
+from ads_page_path
 union
-select
-    '20250919' ds,
-    source,
-    nvl(target,'null'),
-    count(*) path_count
-from
-    (
-        select
-            concat('step-',rn,':',page_id) source,
-            concat('step-',rn+1,':',next_page_id) target
-        from
-            (
-                select
-                    page_id,
-                    lead(page_id,1,null) over(partition by session_id order by view_time) next_page_id,
-                    row_number() over (partition by session_id order by view_time) rn
-                from dwd_traffic_page_view_inc
-                where ds=${d}
-            )t1
-    )t2
-group by source,target;
+select '20251008' as ds,
+       source,
+       nvl(target, 'null'),
+       count(*)      path_count
+from (select concat('step-', rn, ':', page_id)          source,
+             concat('step-', rn + 1, ':', next_page_id) target
+      from (select page_id,
+                   lead(page_id, 1, null) over (partition by session_id order by view_time) next_page_id,
+                   row_number() over (partition by session_id order by view_time)           rn
+            from dwd_traffic_page_view_inc
+            where ds = ${d}) t1) t2
+group by source, target;
 
 
 
@@ -81,47 +73,33 @@ CREATE EXTERNAL TABLE ads_user_change
 
 
 insert overwrite table ads_user_change
-select * from ads_user_change
+select *
+from ads_user_change
 union
-select
-    churn.ds,
-    user_churn_count,
-    user_back_count
-from
-    (
-        select
-            '20250919' ds,
-            count(*) user_churn_count
-        from dws_user_user_login_td
-        where ds=${d}
-          and login_date_last=date_add( '20250919',-7)
-    )churn
-        join
-    (
-        select
-            '20250919' ds,
-            count(*) user_back_count
-        from
-            (
-                select
-                    user_id,
-                    login_date_last
-                from dws_user_user_login_td
-                where ds=${d}
-                  and login_date_last =  '20250919'
-            )t1
-                join
-            (
-                select
-                    user_id,
-                    login_date_last login_date_previous
-                from dws_user_user_login_td
-                where ds=date_add( '20250919',-1)
-            )t2
-            on t1.user_id=t2.user_id
-        where datediff(login_date_last,login_date_previous)>=8
-    )back
-    on churn.ds=back.ds;
+select churn.ds,
+       user_churn_count,
+       user_back_count
+from (select '20251008' as ds,
+             count(*)      user_churn_count
+      from dws_user_user_login_td
+      where ds = ${d}
+        and login_date_last = date_add('20251008', -7)) churn
+         join
+     (select '20251008' ds,
+             count(*)   user_back_count
+      from (select user_id,
+                   login_date_last
+            from dws_user_user_login_td
+            where ds = ${d}
+              and login_date_last = '20251008') t1
+               join
+           (select user_id,
+                   login_date_last login_date_previous
+            from dws_user_user_login_td
+            where ds = date_add('20251008', -1)) t2
+           on t1.user_id = t2.user_id
+      where datediff(login_date_last, login_date_previous) >= 8) back
+     on churn.ds = back.ds;
 
 
 DROP TABLE IF EXISTS ads_user_retention;
@@ -139,21 +117,20 @@ CREATE EXTERNAL TABLE ads_user_retention
 
 
 insert overwrite table ads_user_retention
-select * from ads_user_retention
+select *
+from ads_user_retention
 union
-select '20250919' ds,
-       login_date_first create_date,
-       datediff('20250919', login_date_first) retention_day,
-       sum(if(login_date_last = '20250919', 1, 0)) retention_count,
-       count(*) new_user_count,
-       cast(sum(if(login_date_last = '20250919', 1, 0)) / count(*) * 100 as decimal(16, 2)) retention_rate
-from (
-         select user_id,
-                login_date_last,
-                login_date_first
-         from dws_user_user_login_td
-         where ds = ${d}
-     ) t1
+select '20251008'                                                                           ds,
+       login_date_first                                                                     create_date,
+       datediff('20251008', login_date_first)                                               retention_day,
+       sum(if(login_date_last = '20251008', 1, 0))                                          retention_count,
+       count(*)                                                                             new_user_count,
+       cast(sum(if(login_date_last = '20251008', 1, 0)) / count(*) * 100 as decimal(16, 2)) retention_rate
+from (select user_id,
+             login_date_last,
+             login_date_first
+      from dws_user_user_login_td
+      where ds = ${d}) t1
 group by login_date_first;
 
 DROP TABLE IF EXISTS ads_user_stats;
@@ -168,14 +145,15 @@ CREATE EXTERNAL TABLE ads_user_stats
     LOCATION '/warehouse/gmall/ads/ads_user_stats/';
 
 insert overwrite table ads_user_stats
-select * from ads_user_stats
+select *
+from ads_user_stats
 union
-select '20250919' ds,
+select '20251008' as                                                             ds,
        recent_days,
-       sum(if(login_date_first >= date_add('20250919', -recent_days + 1), 1, 0)) new_user_count,
-       count(*) active_user_count
+       sum(if(login_date_first >= date_add('20251008', -recent_days + 1), 1, 0)) new_user_count,
+       count(*)                                                                  active_user_count
 from dws_user_user_login_td lateral view explode(array(1, 7, 30)) tmp as recent_days
-where ds = '20250919'
+where ds = '20251008'
 group by recent_days;
 
 
@@ -193,52 +171,39 @@ CREATE EXTERNAL TABLE ads_user_action
     LOCATION '/warehouse/gmall/ads/ads_user_action/';
 
 insert overwrite table ads_user_action
-select * from ads_user_action
+select *
+from ads_user_action
 union
-select
-    '20250919' ds,
-    home_count,
-    good_detail_count,
-    cart_count,
-    order_count,
-    payment_count
-from
-    (
-        select
-            1 recent_days,
-            sum(if(page_id='home',1,0)) home_count,
-            sum(if(page_id='good_detail',1,0)) good_detail_count
-        from dws_traffic_page_visitor_page_view_1d
-        where ds='20250919'
-          and page_id in ('home','good_detail')
-    )page
-        join
-    (
-        select
-            1 recent_days,
-            count(*) cart_count
-        from dws_trade_user_cart_add_1d
-        where ds='20250919'
-    )cart
-    on page.recent_days=cart.recent_days
-        join
-    (
-        select
-            1 recent_days,
-            count(*) order_count
-        from dws_trade_user_order_1d
-        where ds='20250919'
-    )ord
-    on page.recent_days=ord.recent_days
-        join
-    (
-        select
-            1 recent_days,
-            count(*) payment_count
-        from dws_trade_user_payment_1d
-        where ds='20250919'
-    )pay
-    on page.recent_days=pay.recent_days;
+select '20251008' ds,
+       home_count,
+       good_detail_count,
+       cart_count,
+       order_count,
+       payment_count
+from (select 1                                      recent_days,
+             sum(if(page_id = 'home', 1, 0))        home_count,
+             sum(if(page_id = 'good_detail', 1, 0)) good_detail_count
+      from dws_traffic_page_visitor_page_view_1d
+      where ds = '20251008'
+        and page_id in ('home', 'good_detail')) page
+         join
+     (select 1        recent_days,
+             count(*) cart_count
+      from dws_trade_user_cart_add_1d
+      where ds = '20251008') cart
+     on page.recent_days = cart.recent_days
+         join
+     (select 1        recent_days,
+             count(*) order_count
+      from dws_trade_user_order_1d
+      where ds = '20251008') ord
+     on page.recent_days = ord.recent_days
+         join
+     (select 1        recent_days,
+             count(*) payment_count
+      from dws_trade_user_payment_1d
+      where ds = '20251008') pay
+     on page.recent_days = pay.recent_days;
 
 DROP TABLE IF EXISTS ads_new_order_user_stats;
 CREATE EXTERNAL TABLE ads_new_order_user_stats
@@ -252,14 +217,14 @@ CREATE EXTERNAL TABLE ads_new_order_user_stats
 
 
 insert overwrite table ads_new_order_user_stats
-select * from ads_new_order_user_stats
+select *
+from ads_new_order_user_stats
 union
-select
-    '20250919' ds,
-    recent_days,
-    count(*) new_order_user_count
-from dws_trade_user_order_td lateral view explode(array(1,7,30)) tmp as recent_days
-where ds='20250919'
+select '20251008' as ds,
+       recent_days,
+       count(*)      new_order_user_count
+from dws_trade_user_order_td lateral view explode(array(1, 7, 30)) tmp as recent_days
+where ds = '20251008'
 group by recent_days;
 
 
@@ -275,192 +240,166 @@ CREATE EXTERNAL TABLE ads_order_continuously_user_count
 
 
 insert overwrite table ads_order_continuously_user_count
-select * from ads_order_continuously_user_count
+select *
+from ads_order_continuously_user_count
 union
-select
-    '20250919',
-    7,
-    count(distinct(user_id))
-from
-    (
-        select
-            user_id,
-            datediff(lead(ds,2,'9999-12-31') over(partition by user_id order by ds),ds) diff
-        from dws_trade_user_order_1d
-        where ds>=date_add('20250919',-6)
-    )t1
-where diff=2;
+select '20251008',
+       7,
+       count(distinct (user_id))
+from (select user_id,
+             datediff(lead(ds, 2, '9999-12-31') over (partition by user_id order by ds), ds) diff
+      from dws_trade_user_order_1d
+      where ds >= date_add('20251008', -6)) t1
+where diff = 2;
 
 DROP TABLE IF EXISTS ads_repeat_purchase_by_tm;
 CREATE EXTERNAL TABLE ads_repeat_purchase_by_tm
 (
-    `ds`                  STRING COMMENT '统计日期',
+    `ds`                STRING COMMENT '统计日期',
     `recent_days`       BIGINT COMMENT '最近天数,30:最近30天',
-    `tm_id`              STRING COMMENT '品牌ID',
-    `tm_name`            STRING COMMENT '品牌名称',
+    `tm_id`             STRING COMMENT '品牌ID',
+    `tm_name`           STRING COMMENT '品牌名称',
     `order_repeat_rate` DECIMAL(16, 2) COMMENT '复购率'
 ) COMMENT '最近30日各品牌复购率统计'
     ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
     LOCATION '/warehouse/gmall/ads/ads_repeat_purchase_by_tm/';
 
 insert overwrite table ads_repeat_purchase_by_tm
-select * from ads_repeat_purchase_by_tm
+select *
+from ads_repeat_purchase_by_tm
 union
-select
-    '20250919',
-    30,
-    tm_id,
-    tm_name,
-    cast(sum(if(order_count>=2,1,0))/sum(if(order_count>=1,1,0)) as decimal(16,2))
-from
-    (
-        select
-            user_id,
-            tm_id,
-            tm_name,
-            sum(order_count_30d) order_count
-        from dws_trade_user_sku_order_nd
-        where ds='20250919'
-        group by user_id, tm_id,tm_name
-    )t1
-group by tm_id,tm_name;
+select '20251008',
+       30,
+       tm_id,
+       tm_name,
+       cast(sum(if(order_count >= 2, 1, 0)) / sum(if(order_count >= 1, 1, 0)) as decimal(16, 2))
+from (select tm_id,
+             tm_name,
+             sum(order_count_30d) order_count
+      from dws_trade_user_sku_order_nd
+      where ds = '20251008'
+      group by user_id, tm_id, tm_name) t1
+group by tm_id, tm_name;
 
 DROP TABLE IF EXISTS ads_order_stats_by_tm;
 CREATE EXTERNAL TABLE ads_order_stats_by_tm
 (
-    `ds`                      STRING COMMENT '统计日期',
-    `recent_days`             BIGINT COMMENT '最近天数,1:最近1天,7:最近7天,30:最近30天',
-    `tm_id`                   STRING COMMENT '品牌ID',
-    `tm_name`                 STRING COMMENT '品牌名称',
-    `order_count`             BIGINT COMMENT '下单数',
-    `order_user_count`        BIGINT COMMENT '下单人数'
+    `ds`               STRING COMMENT '统计日期',
+    `recent_days`      BIGINT COMMENT '最近天数,1:最近1天,7:最近7天,30:最近30天',
+    `tm_id`            STRING COMMENT '品牌ID',
+    `tm_name`          STRING COMMENT '品牌名称',
+    `order_count`      BIGINT COMMENT '下单数',
+    `order_user_count` BIGINT COMMENT '下单人数'
 ) COMMENT '各品牌商品下单统计'
     ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
     LOCATION '/warehouse/gmall/ads/ads_order_stats_by_tm/';
 
 insert overwrite table ads_order_stats_by_tm
-select * from ads_order_stats_by_tm
+select *
+from ads_order_stats_by_tm
 union
-select
-    '20250919' ds,
-    recent_days,
-    tm_id,
-    tm_name,
-    order_count,
-    order_user_count
-from
-    (
-        select
-            1 recent_days,
-            tm_id,
-            tm_name,
-            sum(order_count_1d) order_count,
-            count(distinct(user_id)) order_user_count
-        from dws_trade_user_sku_order_1d
-        where ds='20250919'
-        group by tm_id,tm_name
-        union all
-        select
-            recent_days,
-            tm_id,
-            tm_name,
-            sum(order_count),
-            count(distinct(if(order_count>0,user_id,null)))
-        from
-            (
-                select
-                    recent_days,
-                    user_id,
-                    tm_id,
-                    tm_name,
-                    case recent_days
-                        when 7 then order_count_7d
-                        when 30 then order_count_30d
-                        end order_count
-                from dws_trade_user_sku_order_nd lateral view explode(array(7,30)) tmp as recent_days
-                where ds='20250919'
-            )t1
-        group by recent_days,tm_id,tm_name
-    )odr;
+select '20251008' ds,
+       recent_days,
+       tm_id,
+       tm_name,
+       order_count,
+       order_user_count
+from (select 1                         recent_days,
+             tm_id,
+             tm_name,
+             sum(order_count_1d)       order_count,
+             count(distinct (user_id)) order_user_count
+      from dws_trade_user_sku_order_1d
+      where ds = '20251008'
+      group by tm_id, tm_name
+      union all
+      select recent_days,
+             tm_id,
+             tm_name,
+             sum(order_count),
+             count(distinct (if(order_count > 0, user_id, null)))
+      from (select recent_days,
+                   user_id,
+                   tm_id,
+                   tm_name,
+                   case recent_days
+                       when 7 then order_count_7d
+                       when 30 then order_count_30d
+                       end order_count
+            from dws_trade_user_sku_order_nd lateral view explode(array(7, 30)) tmp as recent_days
+            where ds = '20251008') t1
+      group by recent_days, tm_id, tm_name) odr;
 
 
 DROP TABLE IF EXISTS ads_order_stats_by_cate;
 CREATE EXTERNAL TABLE ads_order_stats_by_cate
 (
-    `ds`                      STRING COMMENT '统计日期',
-    `recent_days`             BIGINT COMMENT '最近天数,1:最近1天,7:最近7天,30:最近30天',
-    `category1_id`            STRING COMMENT '一级品类ID',
-    `category1_name`          STRING COMMENT '一级品类名称',
-    `category2_id`            STRING COMMENT '二级品类ID',
-    `category2_name`          STRING COMMENT '二级品类名称',
-    `category3_id`            STRING COMMENT '三级品类ID',
-    `category3_name`          STRING COMMENT '三级品类名称',
-    `order_count`             BIGINT COMMENT '下单数',
-    `order_user_count`        BIGINT COMMENT '下单人数'
+    `ds`               STRING COMMENT '统计日期',
+    `recent_days`      BIGINT COMMENT '最近天数,1:最近1天,7:最近7天,30:最近30天',
+    `category1_id`     STRING COMMENT '一级品类ID',
+    `category1_name`   STRING COMMENT '一级品类名称',
+    `category2_id`     STRING COMMENT '二级品类ID',
+    `category2_name`   STRING COMMENT '二级品类名称',
+    `category3_id`     STRING COMMENT '三级品类ID',
+    `category3_name`   STRING COMMENT '三级品类名称',
+    `order_count`      BIGINT COMMENT '下单数',
+    `order_user_count` BIGINT COMMENT '下单人数'
 ) COMMENT '各品类商品下单统计'
     ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
     LOCATION '/warehouse/gmall/ads/ads_order_stats_by_cate/';
 
 insert overwrite table ads_order_stats_by_cate
-select * from ads_order_stats_by_cate
+select *
+from ads_order_stats_by_cate
 union
-select
-    '20250919' ds,
-    recent_days,
-    category1_id,
-    category1_name,
-    category2_id,
-    category2_name,
-    category3_id,
-    category3_name,
-    order_count,
-    order_user_count
-from
-    (
-        select
-            1 recent_days,
-            category1_id,
-            category1_name,
-            category2_id,
-            category2_name,
-            category3_id,
-            category3_name,
-            sum(order_count_1d) order_count,
-            count(distinct(user_id)) order_user_count
-        from dws_trade_user_sku_order_1d
-        where ds='20250919'
-        group by category1_id,category1_name,category2_id,category2_name,category3_id,category3_name
-        union all
-        select
-            recent_days,
-            category1_id,
-            category1_name,
-            category2_id,
-            category2_name,
-            category3_id,
-            category3_name,
-            sum(order_count),
-            count(distinct(if(order_count>0,user_id,null)))
-        from
-            (
-                select
-                    recent_days,
-                    user_id,
-                    category1_id,
-                    category1_name,
-                    category2_id,
-                    category2_name,
-                    category3_id,
-                    category3_name,
-                    case recent_days
-                        when 7 then order_count_7d
-                        when 30 then order_count_30d
-                        end order_count
-                from dws_trade_user_sku_order_nd lateral view explode(array(7,30)) tmp as recent_days
-                where ds='20250919'
-            )t1
-        group by recent_days,category1_id,category1_name,category2_id,category2_name,category3_id,category3_name
-    )odr;
+select '20251008' ds,
+       recent_days,
+       category1_id,
+       category1_name,
+       category2_id,
+       category2_name,
+       category3_id,
+       category3_name,
+       order_count,
+       order_user_count
+from (select 1                         recent_days,
+             category1_id,
+             category1_name,
+             category2_id,
+             category2_name,
+             category3_id,
+             category3_name,
+             sum(order_count_1d)       order_count,
+             count(distinct (user_id)) order_user_count
+      from dws_trade_user_sku_order_1d
+      where ds = '20251008'
+      group by category1_id, category1_name, category2_id, category2_name, category3_id, category3_name
+      union all
+      select recent_days,
+             category1_id,
+             category1_name,
+             category2_id,
+             category2_name,
+             category3_id,
+             category3_name,
+             sum(order_count),
+             count(distinct (if(order_count > 0, user_id, null)))
+      from (select recent_days,
+                   user_id,
+                   category1_id,
+                   category1_name,
+                   category2_id,
+                   category2_name,
+                   category3_id,
+                   category3_name,
+                   case recent_days
+                       when 7 then order_count_7d
+                       when 30 then order_count_30d
+                       end order_count
+            from dws_trade_user_sku_order_nd lateral view explode(array(7, 30)) tmp as recent_days
+            where ds = '20251008') t1
+      group by recent_days, category1_id, category1_name, category2_id, category2_name, category3_id,
+               category3_name) odr;
 
 
 DROP TABLE IF EXISTS ads_sku_cart_num_top3_by_cate;
@@ -483,59 +422,48 @@ CREATE EXTERNAL TABLE ads_sku_cart_num_top3_by_cate
 
 set hive.mapjoin.optimized.hashtable=false;
 insert overwrite table ads_sku_cart_num_top3_by_cate
-select * from ads_sku_cart_num_top3_by_cate
+select *
+from ads_sku_cart_num_top3_by_cate
 union
-select
-    '20250919' ds,
-    category1_id,
-    category1_name,
-    category2_id,
-    category2_name,
-    category3_id,
-    category3_name,
-    sku_id,
-    sku_name,
-    cart_num,
-    rk
-from
-    (
-        select
-            sku_id,
-            sku_name,
-            category1_id,
-            category1_name,
-            category2_id,
-            category2_name,
-            category3_id,
-            category3_name,
-            cart_num,
-            rank() over (partition by category1_id,category2_id,category3_id order by cart_num desc) rk
-        from
-            (
-                select
-                    sku_id,
-                    sum(sku_num) cart_num
-                from dwd_trade_cart_full
-                where ds='20250919'
-                group by sku_id
-            )cart
-                left join
-            (
-                select
-                    id,
-                    sku_name,
-                    category1_id,
-                    category1_name,
-                    category2_id,
-                    category2_name,
-                    category3_id,
-                    category3_name
-                from dim_sku_full
-                where ds='20250919'
-            )sku
-            on cart.sku_id=sku.id
-    )t1
-where rk<=3;
+select '20251008' ds,
+       category1_id,
+       category1_name,
+       category2_id,
+       category2_name,
+       category3_id,
+       category3_name,
+       sku_id,
+       sku_name,
+       cart_num,
+       rk
+from (select sku_id,
+             sku_name,
+             category1_id,
+             category1_name,
+             category2_id,
+             category2_name,
+             category3_id,
+             category3_name,
+             cart_num,
+             rank() over (partition by category1_id,category2_id,category3_id order by cart_num desc) rk
+      from (select sku_id,
+                   sum(sku_num) cart_num
+            from dwd_trade_cart_full
+            where ds = '20251008'
+            group by sku_id) cart
+               left join
+           (select id,
+                   sku_name,
+                   category1_id,
+                   category1_name,
+                   category2_id,
+                   category2_name,
+                   category3_id,
+                   category3_name
+            from dim_sku_full
+            where ds = '20251008') sku
+           on cart.sku_id = sku.id) t1
+where rk <= 3;
 -- 优化项不应一直禁用，受影响的SQL执行完毕后打开
 set hive.mapjoin.optimized.hashtable=true;
 
@@ -555,29 +483,25 @@ CREATE EXTERNAL TABLE ads_sku_favor_count_top3_by_tm
 
 
 insert overwrite table ads_sku_favor_count_top3_by_tm
-select * from ads_sku_favor_count_top3_by_tm
+select *
+from ads_sku_favor_count_top3_by_tm
 union
-select
-    '20250919' ds,
-    tm_id,
-    tm_name,
-    sku_id,
-    sku_name,
-    favor_add_count_1d,
-    rk
-from
-    (
-        select
-            tm_id,
-            tm_name,
-            sku_id,
-            sku_name,
-            favor_add_count_1d,
-            rank() over (partition by tm_id order by favor_add_count_1d desc) rk
-        from dws_interaction_sku_favor_add_1d
-        where ds='20250919'
-    )t1
-where rk<=3;
+select '20251008' ds,
+       tm_id,
+       tm_name,
+       sku_id,
+       sku_name,
+       favor_add_count_1d,
+       rk
+from (select tm_id,
+             tm_name,
+             sku_id,
+             sku_name,
+             favor_add_count_1d,
+             rank() over (partition by tm_id order by favor_add_count_1d desc) rk
+      from dws_interaction_sku_favor_add_1d
+      where ds = '20251008') t1
+where rk <= 3;
 
 
 DROP TABLE IF EXISTS ads_order_to_pay_interval_avg;
@@ -591,14 +515,14 @@ CREATE EXTERNAL TABLE ads_order_to_pay_interval_avg
 
 
 insert overwrite table ads_order_to_pay_interval_avg
-select * from ads_order_to_pay_interval_avg
+select *
+from ads_order_to_pay_interval_avg
 union
-select
-    '20250919',
-    cast(avg(to_unix_timestamp(payment_time)-to_unix_timestamp(order_time)) as bigint)
+select '20251008',
+       cast(avg(to_unix_timestamp(payment_time) - to_unix_timestamp(order_time)) as bigint)
 from dwd_trade_trade_flow_acc
-where ds in ('9999-12-31','20250919')
-  and payment_date_id='20250919';
+where ds in ('9999-12-31', '20251008')
+  and payment_date_id = '20251008';
 
 DROP TABLE IF EXISTS ads_order_by_province;
 CREATE EXTERNAL TABLE ads_order_by_province
@@ -617,39 +541,38 @@ CREATE EXTERNAL TABLE ads_order_by_province
     LOCATION '/warehouse/gmall/ads/ads_order_by_province/';
 
 insert overwrite table ads_order_by_province
-select * from ads_order_by_province
+select *
+from ads_order_by_province
 union
-select
-    '20250919' ds,
-    1 recent_days,
-    province_id,
-    province_name,
-    area_code,
-    iso_code,
-    iso_3166_2,
-    order_count_1d,
-    order_total_amount_1d
+select '20251008' as ds,
+       1             recent_days,
+       province_id,
+       province_name,
+       area_code,
+       iso_code,
+       iso_3166_2,
+       order_count_1d,
+       order_total_amount_1d
 from dws_trade_province_order_1d
-where ds='20250919'
+where ds = '20251008'
 union
-select
-    '20250919' ds,
-    recent_days,
-    province_id,
-    province_name,
-    area_code,
-    iso_code,
-    iso_3166_2,
-    case recent_days
-        when 7 then order_count_7d
-        when 30 then order_count_30d
-        end order_count,
-    case recent_days
-        when 7 then order_total_amount_7d
-        when 30 then order_total_amount_30d
-        end order_total_amount
-from dws_trade_province_order_nd lateral view explode(array(7,30)) tmp as recent_days
-where ds='20250919';
+select '20251008' as ds,
+       recent_days,
+       province_id,
+       province_name,
+       area_code,
+       iso_code,
+       iso_3166_2,
+       case recent_days
+           when 7 then order_count_7d
+           when 30 then order_count_30d
+           end       order_count,
+       case recent_days
+           when 7 then order_total_amount_7d
+           when 30 then order_total_amount_30d
+           end       order_total_amount
+from dws_trade_province_order_nd lateral view explode(array(7, 30)) tmp as recent_days
+where ds = '20251008';
 
 
 DROP TABLE IF EXISTS ads_coupon_stats;
@@ -665,14 +588,131 @@ CREATE EXTERNAL TABLE ads_coupon_stats
     LOCATION '/warehouse/gmall/ads/ads_coupon_stats/';
 
 insert overwrite table ads_coupon_stats
-select * from ads_coupon_stats
+select *
+from ads_coupon_stats
 union
-select
-    '20250919' ds,
-    coupon_id,
-    coupon_name,
-    cast(sum(used_count_1d) as bigint),
-    cast(count(*) as bigint)
+select '20251008' as ds,
+       coupon_id,
+       coupon_name,
+       cast(sum(used_count_1d) as bigint),
+       cast(count(*) as bigint)
 from dws_tool_user_coupon_coupon_used_1d
-where ds='20250919'
-group by coupon_id,coupon_name;
+where ds = '20251008'
+group by coupon_id, coupon_name;
+
+-- 各省份用户活跃度指标
+DROP TABLE IF EXISTS ads_province_user_activity;
+CREATE EXTERNAL TABLE ads_province_user_activity
+(
+    `ds`              STRING COMMENT '统计日期，如20251008',
+    `province_id`      STRING COMMENT '省份ID',
+    `province_name`    STRING COMMENT '省份名称',
+    `active_user_count` BIGINT COMMENT '当日活跃用户数',
+    `total_user_count` BIGINT COMMENT '省份累计总用户数',
+    `activity_rate`    DECIMAL(16,2) COMMENT '用户活跃度（%）'
+) COMMENT '各省份用户活跃度'
+    ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+    LOCATION '/warehouse/gmall/ads/ads_province_user_activity/'
+    TBLPROPERTIES ('orc.compress' = 'snappy');
+
+insert overwrite table ads_province_user_activity
+select * from ads_province_user_activity  -- 保留历史数据
+union all
+select
+    '20251008' as ds,
+    p.province_id,
+    p.province_name,
+    nvl(active.active_user, 0) as active_user_count,
+    total.total_user as total_user_count,
+    -- 计算活跃度，避免分母为0
+    case when total.total_user = 0 then 0
+         else cast(nvl(active.active_user, 0) / total.total_user * 100 as decimal(16,2))
+        end as activity_rate
+from (
+         -- 1. 统计各省份当日活跃用户数（当日登录用户）
+         select
+             u.province_id,
+             count(distinct u.user_id) as active_user
+         from dwd_user_login_inc u
+         where u.ds = '20251008'
+         group by u.province_id
+     ) active
+-- 2. 关联省份维度表，补充省份名称
+         left join (
+    select
+        id as province_id,
+        province_name
+    from dim_province_full
+    where ds = '20251008'
+) p on active.province_id = p.province_id
+-- 3. 关联各省份累计总用户数（历史所有注册用户）
+         left join (
+    select
+        province_id,
+        count(distinct user_id) as total_user
+    from dwd_user_register_inc
+    group by province_id
+) total on active.province_id = total.province_id;
+
+-- 各品牌商品加购率指标
+DROP TABLE IF EXISTS ads_tm_sku_cart_rate;
+CREATE EXTERNAL TABLE ads_tm_sku_cart_rate
+(
+    `ds`              STRING COMMENT '统计日期，如20251008',
+    `tm_id`           STRING COMMENT '品牌ID',
+    `tm_name`         STRING COMMENT '品牌名称',
+    `cart_user_count` BIGINT COMMENT '当日加购用户数',
+    `view_user_count` BIGINT COMMENT '当日浏览用户数',
+    `cart_rate`       DECIMAL(16,2) COMMENT '商品加购率（%）'
+) COMMENT '各品牌商品加购率'
+    ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+    LOCATION '/warehouse/gmall/ads/ads_tm_sku_cart_rate/'
+    TBLPROPERTIES ('orc.compress' = 'snappy');
+
+insert overwrite table ads_tm_sku_cart_rate
+select * from ads_tm_sku_cart_rate  -- 保留历史数据
+union all
+select
+    '20251008' as ds,
+    sku.tm_id,
+    sku.tm_name,
+    nvl(cart.cart_user, 0) as cart_user_count,
+    view.view_user as view_user_count,
+    -- 计算加购率，避免分母为0
+    case when view.view_user = 0 then 0
+         else cast(nvl(cart.cart_user, 0) / view.view_user * 100 as decimal(16,2))
+        end as cart_rate
+from (
+         -- 1. 统计各品牌当日浏览用户数（浏览商品详情页的用户）
+         select
+             s.tm_id,
+             count(distinct t.user_id) as view_user
+         from dwd_traffic_page_view_inc t
+                  -- 关联商品维度表，获取品牌信息（page_item为商品SKU_ID）
+                  left join dim_sku_full s on t.page_item = s.id
+         where t.ds = '20251008'
+           and t.page_id = 'good_detail'  -- 筛选商品详情页浏览记录
+           and s.tm_id is not null
+         group by s.tm_id
+     ) view
+-- 2. 关联品牌维度表，补充品牌名称
+         left join (
+    select
+        id as tm_id,
+        tm_name
+    from dim_sku_full
+    where ds = '20251008'
+    group by id, tm_name  -- 去重品牌信息
+) sku on view.tm_id = sku.tm_id
+-- 3. 关联各品牌当日加购用户数
+         left join (
+    select
+        s.tm_id,
+        count(distinct c.user_id) as cart_user
+    from dwd_trade_cart_add_inc c
+             -- 关联商品维度表，获取品牌信息
+             left join dim_sku_full s on c.sku_id = s.id
+    where c.ds = '20251008'
+      and s.tm_id is not null
+    group by s.tm_id
+) cart on view.tm_id = cart.tm_id;
