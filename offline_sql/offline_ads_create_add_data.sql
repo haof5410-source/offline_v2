@@ -464,7 +464,7 @@ from (select sku_id,
             where ds = '20251008') sku
            on cart.sku_id = sku.id) t1
 where rk <= 3;
--- 优化项不应一直禁用，受影响的SQL执行完毕后打开
+
 set hive.mapjoin.optimized.hashtable=true;
 
 DROP TABLE IF EXISTS ads_sku_favor_count_top3_by_tm;
@@ -683,7 +683,6 @@ select
          else cast(nvl(cart.cart_user, 0) / view.view_user * 100 as decimal(16,2))
         end as cart_rate
 from (
-         -- 1. 统计各品牌当日浏览用户数（浏览商品详情页的用户）
          select
              s.tm_id,
              count(distinct t.user_id) as view_user
@@ -691,26 +690,23 @@ from (
                   -- 关联商品维度表，获取品牌信息（page_item为商品SKU_ID）
                   left join dim_sku_full s on t.page_item = s.id
          where t.ds = '20251008'
-           and t.page_id = 'good_detail'  -- 筛选商品详情页浏览记录
+           and t.page_id = 'good_detail'
            and s.tm_id is not null
          group by s.tm_id
      ) view
--- 2. 关联品牌维度表，补充品牌名称
          left join (
     select
         id as tm_id,
         tm_name
     from dim_sku_full
     where ds = '20251008'
-    group by id, tm_name  -- 去重品牌信息
+    group by id, tm_name
 ) sku on view.tm_id = sku.tm_id
--- 3. 关联各品牌当日加购用户数
          left join (
     select
         s.tm_id,
         count(distinct c.user_id) as cart_user
     from dwd_trade_cart_add_inc c
-             -- 关联商品维度表，获取品牌信息
              left join dim_sku_full s on c.sku_id = s.id
     where c.ds = '20251008'
       and s.tm_id is not null

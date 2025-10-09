@@ -82,3 +82,8 @@ Management Service服务端口给顶了，然后我将Minio给关闭了后虚拟
 
 今天完成老师步骤的任务第一个自己创建的指标的报表图为![img_21.png](..%2Fimg%2Fimg_21.png)
 第二个为各省份用户活跃度指标![img_22.png](..%2Fimg%2Fimg_22.png)
+
+### 2025/10/09
+
+今天将老师昨天整的子Windows安装了，顺便也安装了一下mysql和将C盘换到了D盘。
+然后顺便把上钻写了一个![img_23.png](..%2Fimg%2Fimg_23.png)
